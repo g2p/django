@@ -233,6 +233,8 @@ class QuerySet(object):
         # build the list of fields that are to be loaded.
         if only_load:
             for field, model in self.model._meta.get_fields_with_model():
+                if field.virtual:
+                    continue
                 if model is None:
                     model = self.model
                 if field == self.model._meta.pk:
@@ -257,6 +259,8 @@ class QuerySet(object):
             skip = set()
             init_list = []
             for field in fields:
+                if field.virtual:
+                    continue
                 if field.name not in load_fields:
                     skip.add(field.attname)
                 else:
@@ -1221,7 +1225,7 @@ def get_cached_row(klass, row, index_start, using, max_depth=0, cur_depth=0,
         if local_only:
             field_names = [f.attname for f in klass._meta.local_fields]
         else:
-            field_names = [f.attname for f in klass._meta.fields]
+            field_names = [f.attname for f in klass._meta.fields if not f.virtual]
         field_count = len(field_names)
         fields = row[index_start : index_start + field_count]
         # If all the select_related columns are None, then the related

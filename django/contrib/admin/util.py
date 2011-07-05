@@ -7,47 +7,9 @@ from django.utils import formats
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.text import capfirst
-from django.utils.encoding import force_unicode, smart_unicode, smart_str
+from django.utils.encoding import force_unicode, quote, smart_unicode, smart_str
 from django.utils.translation import ungettext
 from django.core.urlresolvers import reverse
-
-
-def quote(s):
-    """
-    Ensure that primary key values do not confuse the admin URLs by escaping
-    any '/', '_' and ':' characters. Similar to urllib.quote, except that the
-    quoting is slightly different so that it doesn't get automatically
-    unquoted by the Web browser.
-    """
-    if not isinstance(s, basestring):
-        return s
-    res = list(s)
-    for i in range(len(res)):
-        c = res[i]
-        if c in """:/_#?;@&=+$,"<>%\\""":
-            res[i] = '_%02X' % ord(c)
-    return ''.join(res)
-
-
-def unquote(s):
-    """
-    Undo the effects of quote(). Based heavily on urllib.unquote().
-    """
-    mychr = chr
-    myatoi = int
-    list = s.split('_')
-    res = [list[0]]
-    myappend = res.append
-    del list[0]
-    for item in list:
-        if item[1:2]:
-            try:
-                myappend(mychr(myatoi(item[:2], 16)) + item[2:])
-            except ValueError:
-                myappend('_' + item)
-        else:
-            myappend('_' + item)
-    return "".join(res)
 
 
 def flatten_fieldsets(fieldsets):

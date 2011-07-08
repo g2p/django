@@ -832,6 +832,15 @@ class ComplexSortedPersonAdmin(admin.ModelAdmin):
     colored_name.allow_tags = True
     colored_name.admin_order_field = 'name'
 
+class PersonWithCompositePK(models.Model):
+    first_name = models.CharField(max_length=47)
+    last_name = models.CharField(max_length=47)
+    
+    full_name = models.CompositeField(first_name, last_name, primary_key=True)
+
+    def __unicode__(self):
+        return u"%s %s" % self.full_name
+
 admin.site.register(Article, ArticleAdmin)
 admin.site.register(CustomArticle, CustomArticleAdmin)
 admin.site.register(Section, save_as=True, inlines=[ArticleInline])
@@ -894,3 +903,4 @@ admin.site.register(Question)
 admin.site.register(Answer)
 admin.site.register(PrePopulatedPost, PrePopulatedPostAdmin)
 admin.site.register(ComplexSortedPerson, ComplexSortedPersonAdmin)
+admin.site.register(PersonWithCompositePK)

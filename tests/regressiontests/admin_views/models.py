@@ -841,6 +841,25 @@ class PersonWithCompositePK(models.Model):
     def __unicode__(self):
         return u"%s %s" % self.full_name
 
+class WeekDay(models.Model):
+    pos = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=10)
+
+class Sentence(models.Model):
+    sentence = models.CharField(max_length=128)
+
+class SentenceFreq(models.Model):
+    weekday = models.ForeignKey(WeekDay, db_column='wd')
+    sentence = models.ForeignKey(Sentence)
+    score = models.FloatField()
+
+    composite_key = models.CompositeField(
+        weekday, sentence, primary_key=True)
+
+    def __unicode__(self):
+        return self.sentence.sentence.replace('?', self.weekday.name)
+
+
 admin.site.register(Article, ArticleAdmin)
 admin.site.register(CustomArticle, CustomArticleAdmin)
 admin.site.register(Section, save_as=True, inlines=[ArticleInline])
@@ -904,3 +923,6 @@ admin.site.register(Answer)
 admin.site.register(PrePopulatedPost, PrePopulatedPostAdmin)
 admin.site.register(ComplexSortedPerson, ComplexSortedPersonAdmin)
 admin.site.register(PersonWithCompositePK)
+admin.site.register(WeekDay)
+admin.site.register(Sentence)
+admin.site.register(SentenceFreq)

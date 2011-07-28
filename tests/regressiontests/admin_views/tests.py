@@ -3,6 +3,7 @@ from __future__ import with_statement
 
 import re
 import datetime
+import posixpath
 import urlparse
 
 from django.conf import settings
@@ -37,7 +38,8 @@ from models import (Article, BarAccount, CustomArticle, EmptyModel,
     Category, Post, Plot, FunkyTag, Chapter, Book, Promo, WorkHour, Employee,
     Question, Answer, Inquisition, Actor, FoodDelivery,
     RowLevelChangePermissionModel, Paper, CoverLetter, Story, OtherStory,
-    ComplexSortedPerson, Parent, Child, PersonWithCompositePK)
+    ComplexSortedPerson, Parent, Child, PersonWithCompositePK,
+    WeekDay, Sentence, SentenceFreq)
 
 
 class AdminViewBasicTest(TestCase):
@@ -3183,6 +3185,13 @@ class AdminCompositePrimaryKeysTests(TestCase):
             last_name="In a driver's license factory"
         )
 
+    def insert_more_items(self):
+        self.wednesday = WeekDay.objects.create(name='Wednesday', pos=3)
+        self.ladies_night = Sentence.objects.create(
+            sentence='? is ladies’ night')
+        self.welani = SentenceFreq.objects.create(
+            weekday=self.wednesday, sentence=self.ladies_night, score=630)
+
     def test_add_save(self):
         """
         Test creation of objects with composite primary keys using "Save".
@@ -3307,3 +3316,21 @@ class AdminCompositePrimaryKeysTests(TestCase):
         self.assertQuerysetEqual(PersonWithCompositePK.objects.all(), [
             "<PersonWithCompositePK: Help I'm trapped In a driver's license factory>",
         ])
+
+    def test_resolve_permalink(self):
+        self.insert_more_items()
+        sf_ct = ContentType.objects.get_for_model(SentenceFreq)
+        self.insert_some_items()
+
+        list_url = reverse(
+            'admin:%s_%s_changelist' % (sf_ct.app_label, sf_ct.model))
+        list_response = self.client.get(list_url)
+        self.assertEqual(list_response.status_code, 200)
+        href = re.search(
+            r'<a href="([^"]+)">Wednesday is', list_response.content).group(1)
+
+        item_url = posixpath.join(list_url, href)
+        item_response = self.client.get(item_url)
+        self.assertEqual(item_response.status_code, 200)
+
+
